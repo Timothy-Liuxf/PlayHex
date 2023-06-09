@@ -5,7 +5,7 @@ public class Program {
                 return new ConsoleTest();
             }
         }
-        throw new IllegalArgumentException("Invalid argument.");
+        return new GuiGameStarter();
     }
 
     public static void main(String[] args) {
