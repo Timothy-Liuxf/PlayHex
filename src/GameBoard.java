@@ -2,37 +2,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GameBoard {
-    public final int ROW = 9;
-    public final int COL = 9;
+    private static final int DEFAULT_ROW = 9;
+    private static final int DEFAULT_COL = 9;
 
-    public enum ChessType {
-        EMPTY,
-        RED,
-        BLUE,
+    public int getRow() {
+        return this.board.length;
     }
 
-    public class Position {
-        public int row;
-        public int col;
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null || !(obj instanceof Position)) {
-                return false;
-            }
-            Position pos = (Position) obj;
-            return this.row == pos.row && this.col == pos.col;
-        }
-
-        @Override
-        public int hashCode() {
-            return this.row ^ this.col;
-        }
-
-        public Position(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
+    public int getCol() {
+        return this.board[0].length;
     }
 
     public ChessType getChessType(Position pos) throws IndexOutOfBoundsException {
@@ -104,23 +82,25 @@ public class GameBoard {
     }
 
     public boolean inRange(Position pos) {
-        return pos.row >= 0 && pos.row < this.board.length && pos.col >= 0 && pos.col < this.board[0].length;
+        return pos.row >= 0 && pos.row < this.getRow() && pos.col >= 0 && pos.col < this.getCol();
     }
 
-    public GameBoard() {
-        this.board = new ChessType[ROW][COL];
-        for (int i = 0; i < ROW; i++) {
-            for (int j = 0; j < COL; ++j) {
+    public GameBoard(int row, int col) throws IllegalArgumentException {
+        if (row <= 0 || col <= 0) {
+            throw new IllegalArgumentException("Row or col is out of range.");
+        }
+
+        this.board = new ChessType[row][col];
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
                 this.board[i][j] = ChessType.EMPTY;
             }
         }
-
-        // TODO: Init chess pos in gaming...
-        // this.board[1][1] = ChessType.BLUE;
-        // this.board[1][6] = ChessType.RED;
-        // this.board[7][1] = ChessType.RED;
-        // this.board[7][6] = ChessType.BLUE;
     }
 
-    ChessType[][] board;
+    public GameBoard() {
+        this(DEFAULT_ROW, DEFAULT_COL);
+    }
+
+    private ChessType[][] board;
 }
