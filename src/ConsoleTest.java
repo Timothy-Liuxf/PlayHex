@@ -16,6 +16,7 @@ public class ConsoleTest implements GameStarter {
         }
     }
 
+    @Override
     public void startGame(String[] args) {
         {
             var logic = new Logic();

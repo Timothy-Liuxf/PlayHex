@@ -9,6 +9,9 @@ import javax.swing.*;
 public class GuiGame extends JFrame {
     private static final String WINDOW_TITLE = "PlayHex";
     private static final double SQRT_3 = 1.7320508075688772;
+    private static final int PAINT_TIME_INTERVAL = 100;
+    private static final int SINGLE_ANIMATION_TIME = 300;
+    private static final double SCALE_STEP = 1.0 / ((double) SINGLE_ANIMATION_TIME / (double) PAINT_TIME_INTERVAL);
     private final int windowHeight = 600;
     private final int windowWidth = 600;
     private int startX;
@@ -66,16 +69,52 @@ public class GuiGame extends JFrame {
                 }
             }
 
+            final var gameState = gameStateManager.getGameState();
+
             // Chesses
+            Position animatingPos = null;
+            if (gameStateManager.getGameState() == GameState.ANIMATING) {
+                var record = animationRecorder.getTopAnimationRecord();
+                if (record != null) {
+                    animatingPos = new Position(record.pos.row, record.pos.col);
+                }
+            }
             for (int i = 0; i < row; ++i) {
                 for (int j = 0; j < col; ++j) {
                     var centerPos = getHexagonCenterPos(i, j);
                     int chessRadius = (int) (fullRadius * 0.75);
-                    int[] verticesX = getHexagonVerticesX(centerPos, chessRadius);
-                    int[] verticesY = getHexagonVerticesY(centerPos, chessRadius);
                     var type = logic.getChessType(new Position(i, j));
                     Color fillColor;
                     Color strokeColor;
+
+                    if (gameState == GameState.ANIMATING) {
+                        if (animationRecorder.isAnimating(i, j)) {
+                            var scale = animationRecorder.getAnimationScale(i, j);
+                            chessRadius = (int) (chessRadius * scale);
+                            type = animationRecorder.getChessType(i, j);
+                            if (animatingPos != null
+                                    && i == animatingPos.row && j == animatingPos.col) {
+                                var record = animationRecorder.getTopAnimationRecord();
+                                if (record != null) {
+                                    if (record.isAppear) {
+                                        scale += SCALE_STEP;
+                                        if (scale > 1.0 - SCALE_STEP / 2.0) {
+                                            scale = 1.0;
+                                            animationRecorder.popAnimationRecord();
+                                        }
+                                    } else {
+                                        scale -= SCALE_STEP;
+                                        if (scale < SCALE_STEP / 2.0) {
+                                            scale = 0.0;
+                                            animationRecorder.popAnimationRecord();
+                                        }
+                                    }
+                                    animationRecorder.setAnimationScale(i, j, scale);
+                                }
+                            }
+                        }
+                    }
+
                     if (type == ChessType.RED) {
                         fillColor = new Color(224, 70, 69);
                         strokeColor = new Color(179, 57, 57);
@@ -85,6 +124,8 @@ public class GuiGame extends JFrame {
                     } else {
                         continue;
                     }
+                    int[] verticesX = getHexagonVerticesX(centerPos, chessRadius);
+                    int[] verticesY = getHexagonVerticesY(centerPos, chessRadius);
                     g.setColor(fillColor);
                     g.fillPolygon(verticesX, verticesY, 6);
                     g.setColor(strokeColor);
@@ -97,7 +138,6 @@ public class GuiGame extends JFrame {
             final int cursorRadius = highLightRadius;
             final int highLightStroke = 2;
             final int cursorStroke = 2;
-            final var gameState = gameStateManager.getGameState();
             if (gameState == GameState.CHOOSING_DESTINATION) {
                 // Draw chosen chess
                 var pos = chosenPos;
@@ -147,6 +187,12 @@ public class GuiGame extends JFrame {
                         getHexagonVerticesY(centerPos, cursorRadius),
                         6);
             }
+
+            if (gameState == GameState.ANIMATING) {
+                if (animationRecorder.isAnimationFinished()) {
+                    gameStateManager.animationFinished();
+                }
+            }
         }
 
         public BoardPainter() {
@@ -181,29 +227,42 @@ public class GuiGame extends JFrame {
 
             var row = logic.getRow();
             var col = logic.getCol();
+            boolean repaintNow = false;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_W:
                 case KeyEvent.VK_UP:
-                    if (cursorPos.row > 0) {
-                        cursorPos.row -= 1;
+                    if (gameState == GameState.CHOOSING_CHESS || gameState == GameState.CHOOSING_DESTINATION) {
+                        if (cursorPos.row > 0) {
+                            cursorPos.row -= 1;
+                            repaintNow = true;
+                        }
                     }
                     break;
                 case KeyEvent.VK_A:
                 case KeyEvent.VK_LEFT:
-                    if (cursorPos.col > 0) {
-                        cursorPos.col -= 1;
+                    if (gameState == GameState.CHOOSING_CHESS || gameState == GameState.CHOOSING_DESTINATION) {
+                        if (cursorPos.col > 0) {
+                            cursorPos.col -= 1;
+                            repaintNow = true;
+                        }
                     }
                     break;
                 case KeyEvent.VK_S:
                 case KeyEvent.VK_DOWN:
-                    if (cursorPos.row < row - 1) {
-                        cursorPos.row += 1;
+                    if (gameState == GameState.CHOOSING_CHESS || gameState == GameState.CHOOSING_DESTINATION) {
+                        if (cursorPos.row < row - 1) {
+                            cursorPos.row += 1;
+                            repaintNow = true;
+                        }
                     }
                     break;
                 case KeyEvent.VK_D:
                 case KeyEvent.VK_RIGHT:
-                    if (cursorPos.col < col - 1) {
-                        cursorPos.col += 1;
+                    if (gameState == GameState.CHOOSING_CHESS || gameState == GameState.CHOOSING_DESTINATION) {
+                        if (cursorPos.col < col - 1) {
+                            cursorPos.col += 1;
+                            repaintNow = true;
+                        }
                     }
                     break;
                 case KeyEvent.VK_Q:
@@ -218,26 +277,21 @@ public class GuiGame extends JFrame {
                 case KeyEvent.VK_SPACE:
                     if (gameState == GameState.CHOOSING_CHESS) {
                         var pos = cursorPos;
-                        if (logic.getChessType(pos) == logic.getCurrentPlayer()) {
+                        if (logic.canMove(pos)) {
                             chosenPos.row = pos.row;
                             chosenPos.col = pos.col;
                             gameStateManager.choseChess();
                         }
                     } else if (gameState == GameState.CHOOSING_DESTINATION) {
                         if (logic.moveChess(chosenPos, cursorPos)) {
-                            if (logic.isFinished()) {
-                                gameStateManager.gameOver();
-                                GuiGame.this.repaint();
-                                JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game over",
-                                        JOptionPane.INFORMATION_MESSAGE);
-                            } else {
-                                gameStateManager.choseDestination();
-                            }
+                            gameStateManager.choseDestination();
                         }
                     }
                     break;
             }
-            GuiGame.this.repaint();
+            if (repaintNow) {
+                GuiGame.this.repaint();
+            }
         }
     }
 
@@ -245,6 +299,10 @@ public class GuiGame extends JFrame {
         super(WINDOW_TITLE);
 
         this.logic = new Logic();
+        /*
+         * this.logic = new Logic(5, 5, Set.of(new Position(0, 0), new Position(4, 4)),
+         * Set.of(new Position(4, 0), new Position(0, 4)));
+         */
         final int row = logic.getRow();
         final int col = logic.getCol();
         final double substractRatio = 0.9;
@@ -256,6 +314,8 @@ public class GuiGame extends JFrame {
         this.fullRadius = (int) (boardWidth / (SQRT_3 * (col + 0.5)));
         this.cursorPos.row = row / 2;
         this.cursorPos.col = col / 2;
+        this.animationRecorder = new ChessAnimationRecorder(row, col);
+        this.logic.addChessChangeListener(this.animationRecorder);
 
         this.setSize(this.windowWidth, this.windowHeight);
         this.setResizable(false);
@@ -264,11 +324,16 @@ public class GuiGame extends JFrame {
         var boardPainter = new BoardPainter();
         this.setContentPane(boardPainter);
         this.setVisible(true);
+        this.paintTimer = new Timer(PAINT_TIME_INTERVAL, e -> {
+            GuiGame.this.repaint();
+        });
+        this.paintTimer.start();
     }
 
     private Logic logic;
+    private Timer paintTimer;
 
-    private enum GameState {
+    private static enum GameState {
         CHOOSING_CHESS,
         CHOOSING_DESTINATION,
         ANIMATING,
@@ -286,7 +351,7 @@ public class GuiGame extends JFrame {
 
         public boolean choseDestination() {
             if (this.gameState == GameState.CHOOSING_DESTINATION) {
-                this.gameState = GameState.CHOOSING_CHESS;
+                this.gameState = GameState.ANIMATING;
                 return true;
             }
             return false;
@@ -300,9 +365,15 @@ public class GuiGame extends JFrame {
             return false;
         }
 
-        public boolean gameOver() {
-            if (this.gameState != GameState.GAME_OVER) {
-                this.gameState = GameState.GAME_OVER;
+        public boolean animationFinished() {
+            if (this.gameState == GameState.ANIMATING) {
+                if (logic.isFinished()) {
+                    this.gameState = GameState.GAME_OVER;
+                    JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game over",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    this.gameState = GameState.CHOOSING_CHESS;
+                }
                 return true;
             }
             return false;
@@ -316,6 +387,7 @@ public class GuiGame extends JFrame {
     }
 
     private GameStateManager gameStateManager = new GameStateManager();
+    private ChessAnimationRecorder animationRecorder;
     private Position cursorPos = new Position(0, 0);
     private Position chosenPos = new Position(0, 0);
 }

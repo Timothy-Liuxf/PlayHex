@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class Logic {
@@ -42,6 +44,31 @@ public class Logic {
 
     public boolean inRange(Position pos) {
         return this.gameBoard.inRange(pos);
+    }
+
+    public boolean canMove(Position from) {
+        if (this.finished) {
+            return false;
+        }
+
+        if (this.gameBoard.getChessType(from) != this.currentPlayer) {
+            return false;
+        }
+
+        var neibors = this.getNeighbors(from);
+        for (var neighbor : neibors) {
+            if (this.gameBoard.getChessType(neighbor) == ChessType.EMPTY) {
+                return true;
+            }
+        }
+
+        var twoStepNeibors = this.getTwoStepNeibors(from);
+        for (var neighbor : twoStepNeibors) {
+            if (this.gameBoard.getChessType(neighbor) == ChessType.EMPTY) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean moveChess(Position from, Position to) {
@@ -142,6 +169,7 @@ public class Logic {
             throw new IllegalArgumentException("The position is not empty.");
         }
         this.gameBoard.setChessType(pos, this.currentPlayer);
+        this.listeners.forEach(listener -> listener.notifyChessAppear(pos, this.currentPlayer));
     }
 
     private void insertNewChess(Position pos, ChessType type) throws IllegalArgumentException {
@@ -152,10 +180,13 @@ public class Logic {
             throw new IllegalArgumentException("The chess type is empty.");
         }
         this.gameBoard.setChessType(pos, type);
+        this.listeners.forEach(listener -> listener.notifyChessAppear(pos, type));
     }
 
     private void clearChess(Position pos) {
+        var prevType = this.gameBoard.getChessType(pos);
         this.gameBoard.setChessType(pos, ChessType.EMPTY);
+        this.listeners.forEach(listener -> listener.notifyChessDisappear(pos, prevType));
     }
 
     private void flipChess(Position pos) throws IllegalArgumentException {
@@ -164,9 +195,17 @@ public class Logic {
             throw new IllegalArgumentException("The position is empty.");
         } else if (type == ChessType.RED) {
             this.gameBoard.setChessType(pos, ChessType.BLUE);
+            this.listeners.forEach(listener -> listener.notifyChessDisappear(pos, ChessType.RED));
+            this.listeners.forEach(listener -> listener.notifyChessAppear(pos, ChessType.BLUE));
         } else if (type == ChessType.BLUE) {
             this.gameBoard.setChessType(pos, ChessType.RED);
+            this.listeners.forEach(listener -> listener.notifyChessDisappear(pos, ChessType.BLUE));
+            this.listeners.forEach(listener -> listener.notifyChessAppear(pos, ChessType.RED));
         }
+    }
+
+    public void addChessChangeListener(ChessChangeListener listener) {
+        this.listeners.add(listener);
     }
 
     public Logic() throws IllegalArgumentException {
@@ -215,4 +254,5 @@ public class Logic {
     private ChessType currentPlayer;
     private boolean finished;
     private ChessType winner;
+    private List<ChessChangeListener> listeners = new ArrayList<ChessChangeListener>();
 }
