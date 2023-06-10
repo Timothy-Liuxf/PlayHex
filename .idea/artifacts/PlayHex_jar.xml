@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" build-on-make="true" name="PlayHex:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/PlayHex_jar</output-path>
-    <root id="archive" name="PlayHex_jar.jar">
-      <element id="module-output" name="PlayHex" />
-    </root>
-  </artifact>
-</component>
