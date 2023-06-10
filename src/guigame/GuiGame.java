@@ -5,6 +5,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import javax.swing.*;
+import java.net.URI;
 
 import gameboard.*;
 import logic.*;
@@ -363,8 +364,28 @@ public class GuiGame extends JFrame {
         helpMenu.add(localHelp);
         var onlineHelp = new JMenuItem("Online help");
         onlineHelp.addActionListener(e -> {
-            JOptionPane.showMessageDialog(GuiGame.this, "Online help is on the way.\nPlease stay tuned!", "Stay tuned!",
-                    JOptionPane.INFORMATION_MESSAGE);
+            final String onlineHelpUrl = "https://Timothy-Liuxf.github.io/PlayHex";
+            int result = JOptionPane.showConfirmDialog(GuiGame.this,
+                    "Will open external website: " + onlineHelpUrl
+                            + "\nAre you sure?",
+                    "Online Help",
+                    JOptionPane.YES_NO_OPTION);
+            if (result != JOptionPane.YES_OPTION) {
+                return;
+            }
+            boolean browse = false;
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                try {
+                    Desktop.getDesktop().browse(new URI(onlineHelpUrl));
+                    browse = true;
+                } catch (Exception ex) {
+                }
+            }
+            if (!browse) {
+                JOptionPane.showMessageDialog(GuiGame.this,
+                        "Failed to open browser.\nPlease browse " + onlineHelpUrl + " for online help.", "ERROR",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         });
         helpMenu.add(onlineHelp);
         var aboutMenu = new JMenu("About");

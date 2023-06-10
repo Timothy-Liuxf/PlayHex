@@ -25,7 +25,7 @@
 
 无命令行时启动游戏，`--version` 显示版本信息，`--test` 进入程序开发者通道控制台（需要使用 `java` 启动并加 `-jar` 参数，否则无法看到控制台输出）：
 
-<img src="../assets/cmdline.png" width="80%" />
+<img src="../assets/cmdline.png" width="70%" />
 
 ## 所需平台
 
@@ -74,6 +74,18 @@
 3. 棋子逐格填充而不是同时填充。下图为游戏结束时正在填充的棋子：
 
    <img src="../assets/fillrest.png" width="60%" />
+
+### 其他
+
+程序添加了菜单栏。菜单栏目前支持如下内容：
+
++ File
+  + Exit：退出程序
++ Help
+  + Local help：本地帮助，介绍操作方法
+  + Online help：在线帮助~~，暂时还没彻底完成~~
++ About
+  + About...：关于
 
 ## 架构设计
 
