@@ -287,8 +287,16 @@ public class GuiGame extends JFrame {
                             gameStateManager.choseChess();
                         }
                     } else if (gameState == GameState.CHOOSING_DESTINATION) {
-                        if (logic.moveChess(chosenPos, cursorPos)) {
-                            gameStateManager.choseDestination();
+                        var pos = cursorPos;
+                        if (logic.getChessType(pos) == ChessType.EMPTY) {
+                            if (logic.moveChess(chosenPos, pos)) {
+                                gameStateManager.choseDestination();
+                            }
+                        } else if (logic.getChessType(pos) == logic.getCurrentPlayer()) {
+                            gameStateManager.cancelChoose();
+                            chosenPos.row = pos.row;
+                            chosenPos.col = pos.col;
+                            gameStateManager.choseChess();
                         }
                     }
                     break;
