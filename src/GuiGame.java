@@ -1,4 +1,9 @@
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
+import java.util.Set;
+
 import javax.swing.*;
 
 public class GuiGame extends JFrame {
@@ -32,9 +37,8 @@ public class GuiGame extends JFrame {
         return verticesY;
     }
 
-    private class GuiBoard extends JPanel {
-
-        private Position getCenterPos(int i, int j) {
+    private class BoardPainter extends JPanel {
+        private Position getHexagonCenterPos(int i, int j) {
             Position centerPos;
             if (i % 2 == 0) {
                 int centerX = startX + (int) ((j + 0.5) * SQRT_3 * fullRadius);
@@ -61,7 +65,7 @@ public class GuiGame extends JFrame {
             var col = logic.getCol();
             for (int i = 0; i < row; ++i) {
                 for (int j = 0; j < col; ++j) {
-                    var centerPos = getCenterPos(i, j);
+                    var centerPos = getHexagonCenterPos(i, j);
                     int blankRadius = (int) (fullRadius * 0.95);
                     int[] verticesX = getHexagonVerticesX(centerPos, blankRadius);
                     int[] verticesY = getHexagonVerticesY(centerPos, blankRadius);
@@ -73,7 +77,7 @@ public class GuiGame extends JFrame {
             // Chesses
             for (int i = 0; i < row; ++i) {
                 for (int j = 0; j < col; ++j) {
-                    var centerPos = getCenterPos(i, j);
+                    var centerPos = getHexagonCenterPos(i, j);
                     int chessRadius = (int) (fullRadius * 0.75);
                     int[] verticesX = getHexagonVerticesX(centerPos, chessRadius);
                     int[] verticesY = getHexagonVerticesY(centerPos, chessRadius);
@@ -96,6 +100,130 @@ public class GuiGame extends JFrame {
                     g.drawPolygon(verticesX, verticesY, 6);
                 }
             }
+
+            final int highLightRadius = (int) (fullRadius * 0.95);
+            final int cursorRadius = highLightRadius;
+            final int highLightStroke = 2;
+            final int cursorStroke = 2;
+            if (gameState == GameState.CHOOSING_DESTINATION) {
+                // Draw chosen chess
+                var pos = chosenPos;
+                var centerPos = getHexagonCenterPos(pos.row, pos.col);
+                g.setColor(Color.WHITE);
+                ((Graphics2D) g).setStroke(new BasicStroke(highLightStroke));
+                g.drawPolygon(getHexagonVerticesX(centerPos, highLightRadius),
+                        getHexagonVerticesY(centerPos, highLightRadius),
+                        6);
+
+                // Draw possible destinations
+                var neibors = logic.getNeighbors(pos);
+                var twoStepNeibors = logic.getTwoStepNeibors(pos);
+                for (var neighbor : neibors) {
+                    if (logic.getChessType(neighbor) == ChessType.EMPTY) {
+                        centerPos = getHexagonCenterPos(neighbor.row, neighbor.col);
+                        g.setColor(new Color(102, 179, 44));
+                        ((Graphics2D) g).setStroke(new BasicStroke(highLightStroke));
+                        g.drawPolygon(getHexagonVerticesX(centerPos, highLightRadius),
+                                getHexagonVerticesY(centerPos, highLightRadius),
+                                6);
+                    }
+                }
+                for (var neighbor : twoStepNeibors) {
+                    if (logic.getChessType(neighbor) == ChessType.EMPTY) {
+                        centerPos = getHexagonCenterPos(neighbor.row, neighbor.col);
+                        g.setColor(new Color(248, 171, 33));
+                        ((Graphics2D) g).setStroke(new BasicStroke(highLightStroke));
+                        g.drawPolygon(getHexagonVerticesX(centerPos, highLightRadius),
+                                getHexagonVerticesY(centerPos, highLightRadius),
+                                6);
+                    }
+                }
+            }
+
+            if (gameState == GameState.CHOOSING_CHESS || gameState == GameState.CHOOSING_DESTINATION) {
+                // Draw cursor
+                var pos = cursorPos;
+                var centerPos = getHexagonCenterPos(pos.row, pos.col);
+                if (logic.getCurrentPlayer() == ChessType.RED) {
+                    g.setColor(new Color(255, 151, 153));
+                } else {
+                    g.setColor(new Color(154, 205, 255));
+                }
+                ((Graphics2D) g).setStroke(new BasicStroke(cursorStroke));
+                g.drawPolygon(getHexagonVerticesX(centerPos, cursorRadius),
+                        getHexagonVerticesY(centerPos, cursorRadius),
+                        6);
+            }
+        }
+    }
+
+    private class KeyboardControl extends KeyAdapter {
+        // Key pressed
+        @Override
+        public void keyPressed(java.awt.event.KeyEvent e) {
+            if (gameState == GameState.GAME_OVER || gameState == GameState.ANIMATING) {
+                return;
+            }
+
+            var row = logic.getRow();
+            var col = logic.getCol();
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_W:
+                case KeyEvent.VK_UP:
+                    if (cursorPos.row > 0) {
+                        cursorPos.row -= 1;
+                    }
+                    break;
+                case KeyEvent.VK_A:
+                case KeyEvent.VK_LEFT:
+                    if (cursorPos.col > 0) {
+                        cursorPos.col -= 1;
+                    }
+                    break;
+                case KeyEvent.VK_S:
+                case KeyEvent.VK_DOWN:
+                    if (cursorPos.row < row - 1) {
+                        cursorPos.row += 1;
+                    }
+                    break;
+                case KeyEvent.VK_D:
+                case KeyEvent.VK_RIGHT:
+                    if (cursorPos.col < col - 1) {
+                        cursorPos.col += 1;
+                    }
+                    break;
+                case KeyEvent.VK_Q:
+                case KeyEvent.VK_ESCAPE:
+                    if (gameState == GameState.CHOOSING_DESTINATION) {
+                        gameState = GameState.CHOOSING_CHESS;
+                    }
+                    cursorPos.row = chosenPos.row;
+                    cursorPos.col = chosenPos.col;
+                    break;
+                case KeyEvent.VK_ENTER:
+                case KeyEvent.VK_SPACE:
+                    if (gameState == GameState.CHOOSING_CHESS) {
+                        var pos = cursorPos;
+                        if (logic.getChessType(pos) == logic.getCurrentPlayer()) {
+                            chosenPos.row = pos.row;
+                            chosenPos.col = pos.col;
+                            gameState = GameState.CHOOSING_DESTINATION;
+                        }
+                    } else if (gameState == GameState.CHOOSING_DESTINATION) {
+                        if (logic.moveChess(chosenPos, cursorPos)) {
+                            if (logic.isFinished()) {
+                                gameState = GameState.GAME_OVER;
+                                GuiGame.this.repaint();
+                                JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game over",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                            } else {
+                                gameState = GameState.CHOOSING_CHESS;
+                            }
+                        }
+                    }
+                    break;
+            }
+            GuiGame.this.repaint();
         }
     }
 
@@ -112,14 +240,28 @@ public class GuiGame extends JFrame {
         this.startX = (this.windowWidth - boardWidth) / 2;
         this.startY = (this.windowHeight - boardHeight) / 2;
         this.fullRadius = (int) (boardWidth / (SQRT_3 * (col + 0.5)));
+        this.cursorPos.row = row / 2;
+        this.cursorPos.col = col / 2;
 
         this.setSize(this.windowWidth, this.windowHeight);
         this.setResizable(false);
         this.setTitle(WINDOW_TITLE);
-        var guiBoard = new GuiBoard();
-        this.setContentPane(guiBoard);
+        this.addKeyListener(new KeyboardControl());
+        var boardPainter = new BoardPainter();
+        this.setContentPane(boardPainter);
         this.setVisible(true);
     }
 
     private Logic logic;
+
+    private enum GameState {
+        CHOOSING_CHESS,
+        CHOOSING_DESTINATION,
+        ANIMATING,
+        GAME_OVER,
+    }
+
+    private GameState gameState = GameState.CHOOSING_CHESS;
+    private Position cursorPos = new Position(0, 0);
+    private Position chosenPos = new Position(0, 0);
 }
