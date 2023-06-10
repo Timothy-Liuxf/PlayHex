@@ -1,10 +1,13 @@
+package guigame;
+
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-
 import java.util.Set;
-
 import javax.swing.*;
+
+import gameboard.*;
+import logic.*;
 
 public class GuiGame extends JFrame {
     private static final String WINDOW_TITLE = "PlayHex";

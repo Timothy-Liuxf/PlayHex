@@ -1,4 +1,8 @@
+package guigame;
+
 import javax.swing.JFrame;
+
+import starter.*;
 
 public class GuiGameStarter implements GameStarter {
     @Override

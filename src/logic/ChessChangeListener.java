@@ -1,3 +1,7 @@
+package logic;
+
+import gameboard.*;
+
 public interface ChessChangeListener {
     public void notifyChessAppear(Position pos, ChessType type);
 

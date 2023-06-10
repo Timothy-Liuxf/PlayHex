@@ -1,6 +1,10 @@
+package logic;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import gameboard.*;
 
 public class Logic {
     public int getChessCount(ChessType type) {

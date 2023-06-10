@@ -1,5 +1,10 @@
+package guigame;
+
 import java.util.LinkedList;
 import java.util.Queue;
+
+import gameboard.*;
+import logic.*;
 
 public class ChessAnimationRecorder implements ChessChangeListener {
     public static class ChessAnimationRecord {

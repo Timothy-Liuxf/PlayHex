@@ -1,4 +1,10 @@
+package consoletest;
+
 import java.util.Set;
+
+import gameboard.*;
+import starter.*;
+import logic.*;
 
 public class ConsoleTest implements GameStarter {
     private static void printChessBoard(Logic logic) {
