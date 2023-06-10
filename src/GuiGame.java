@@ -39,18 +39,10 @@ public class GuiGame extends JFrame {
 
     private class BoardPainter extends JPanel {
         private Position getHexagonCenterPos(int i, int j) {
-            Position centerPos;
-            if (i % 2 == 0) {
-                int centerX = startX + (int) ((j + 0.5) * SQRT_3 * fullRadius);
-                int centerY = startY + ((i * 3 + 2) * fullRadius) / 2;
-                centerPos = new Position(centerY, centerX);
-            } else {
-                int centerX = startX + (int) ((j + 1) * SQRT_3 * fullRadius);
-                int centerY = startY + ((i * 3 + 2) * fullRadius) / 2;
-                centerPos = new Position(centerY, centerX);
-            }
-            return centerPos;
+            return exagonCenterPos[i][j];
         }
+
+        private Position[][] exagonCenterPos;
 
         @Override
         public void paintComponent(Graphics g) {
@@ -153,6 +145,26 @@ public class GuiGame extends JFrame {
                 g.drawPolygon(getHexagonVerticesX(centerPos, cursorRadius),
                         getHexagonVerticesY(centerPos, cursorRadius),
                         6);
+            }
+        }
+
+        public BoardPainter() {
+            super();
+            var row = logic.getRow();
+            var col = logic.getCol();
+            exagonCenterPos = new Position[row][col];
+            for (int i = 0; i < row; ++i) {
+                for (int j = 0; j < col; ++j) {
+                    if (i % 2 == 0) {
+                        int centerX = startX + (int) ((j + 0.5) * SQRT_3 * fullRadius);
+                        int centerY = startY + ((i * 3 + 2) * fullRadius) / 2;
+                        exagonCenterPos[i][j] = new Position(centerY, centerX);
+                    } else {
+                        int centerX = startX + (int) ((j + 1) * SQRT_3 * fullRadius);
+                        int centerY = startY + ((i * 3 + 2) * fullRadius) / 2;
+                        exagonCenterPos[i][j] = new Position(centerY, centerX);
+                    }
+                }
             }
         }
     }
