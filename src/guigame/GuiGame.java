@@ -3,11 +3,13 @@ package guigame;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.util.Set;
 import javax.swing.*;
 
 import gameboard.*;
 import logic.*;
+import config.*;
 
 public class GuiGame extends JFrame {
     private static final String WINDOW_TITLE = "PlayHex";
@@ -323,6 +325,53 @@ public class GuiGame extends JFrame {
         this.setSize(this.windowWidth, this.windowHeight);
         this.setResizable(false);
         this.setTitle(WINDOW_TITLE);
+        this.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                int result = JOptionPane.showConfirmDialog(GuiGame.this, "Are you sure to exit?", "Exit",
+                        JOptionPane.YES_NO_OPTION);
+                if (result != JOptionPane.YES_OPTION) {
+                    return;
+                }
+                GuiGame.this.paintTimer.stop();
+                GuiGame.this.dispose();
+                System.exit(0);
+            }
+        });
+
+        var menuBar = new JMenuBar();
+        var fileMenu = new JMenu("File");
+        fileMenu.addSeparator();
+        var exit = new JMenuItem("Exit");
+        exit.addActionListener(e -> {
+            GuiGame.this.dispatchEvent(new WindowEvent(GuiGame.this, WindowEvent.WINDOW_CLOSING));
+        });
+        fileMenu.add(exit);
+        var helpMenu = new JMenu("Help");
+        var localHelp = new JMenuItem("Local help");
+        localHelp.addActionListener(e -> {
+            JOptionPane.showMessageDialog(GuiGame.this, Config.HELP_STRING, "Local help",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+        helpMenu.add(localHelp);
+        var onlineHelp = new JMenuItem("Online help");
+        onlineHelp.addActionListener(e -> {
+            JOptionPane.showMessageDialog(GuiGame.this, "Online help is on the way.\nPlease stay tuned!", "Stay tuned!",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+        helpMenu.add(onlineHelp);
+        var aboutMenu = new JMenu("About");
+        var about = new JMenuItem("About...");
+        about.addActionListener(e -> {
+            JOptionPane.showMessageDialog(GuiGame.this, Config.ABOUT_STRING, "About",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+        aboutMenu.add(about);
+        menuBar.add(fileMenu);
+        menuBar.add(helpMenu);
+        menuBar.add(aboutMenu);
+        this.setJMenuBar(menuBar);
+
         this.addKeyListener(new KeyboardControl());
         var boardPainter = new BoardPainter();
         this.setContentPane(boardPainter);
