@@ -97,6 +97,7 @@ public class GuiGame extends JFrame {
             final int cursorRadius = highLightRadius;
             final int highLightStroke = 2;
             final int cursorStroke = 2;
+            final var gameState = gameStateManager.getGameState();
             if (gameState == GameState.CHOOSING_DESTINATION) {
                 // Draw chosen chess
                 var pos = chosenPos;
@@ -173,6 +174,7 @@ public class GuiGame extends JFrame {
         // Key pressed
         @Override
         public void keyPressed(java.awt.event.KeyEvent e) {
+            final var gameState = gameStateManager.getGameState();
             if (gameState == GameState.GAME_OVER || gameState == GameState.ANIMATING) {
                 return;
             }
@@ -207,7 +209,7 @@ public class GuiGame extends JFrame {
                 case KeyEvent.VK_Q:
                 case KeyEvent.VK_ESCAPE:
                     if (gameState == GameState.CHOOSING_DESTINATION) {
-                        gameState = GameState.CHOOSING_CHESS;
+                        gameStateManager.cancelChoose();
                     }
                     cursorPos.row = chosenPos.row;
                     cursorPos.col = chosenPos.col;
@@ -219,17 +221,17 @@ public class GuiGame extends JFrame {
                         if (logic.getChessType(pos) == logic.getCurrentPlayer()) {
                             chosenPos.row = pos.row;
                             chosenPos.col = pos.col;
-                            gameState = GameState.CHOOSING_DESTINATION;
+                            gameStateManager.choseChess();
                         }
                     } else if (gameState == GameState.CHOOSING_DESTINATION) {
                         if (logic.moveChess(chosenPos, cursorPos)) {
                             if (logic.isFinished()) {
-                                gameState = GameState.GAME_OVER;
+                                gameStateManager.gameOver();
                                 GuiGame.this.repaint();
                                 JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game over",
                                         JOptionPane.INFORMATION_MESSAGE);
                             } else {
-                                gameState = GameState.CHOOSING_CHESS;
+                                gameStateManager.choseDestination();
                             }
                         }
                     }
@@ -273,7 +275,47 @@ public class GuiGame extends JFrame {
         GAME_OVER,
     }
 
-    private GameState gameState = GameState.CHOOSING_CHESS;
+    private class GameStateManager {
+        public boolean choseChess() {
+            if (this.gameState == GameState.CHOOSING_CHESS) {
+                this.gameState = GameState.CHOOSING_DESTINATION;
+                return true;
+            }
+            return false;
+        }
+
+        public boolean choseDestination() {
+            if (this.gameState == GameState.CHOOSING_DESTINATION) {
+                this.gameState = GameState.CHOOSING_CHESS;
+                return true;
+            }
+            return false;
+        }
+
+        public boolean cancelChoose() {
+            if (this.gameState == GameState.CHOOSING_DESTINATION) {
+                this.gameState = GameState.CHOOSING_CHESS;
+                return true;
+            }
+            return false;
+        }
+
+        public boolean gameOver() {
+            if (this.gameState != GameState.GAME_OVER) {
+                this.gameState = GameState.GAME_OVER;
+                return true;
+            }
+            return false;
+        }
+
+        public GameState getGameState() {
+            return gameState;
+        }
+
+        private GameState gameState = GameState.CHOOSING_CHESS;
+    }
+
+    private GameStateManager gameStateManager = new GameStateManager();
     private Position cursorPos = new Position(0, 0);
     private Position chosenPos = new Position(0, 0);
 }
