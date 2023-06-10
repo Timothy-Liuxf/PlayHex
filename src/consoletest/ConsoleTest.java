@@ -5,7 +5,6 @@ import java.util.Set;
 import gameboard.*;
 import starter.*;
 import logic.*;
-import config.*;
 
 public class ConsoleTest implements GameStarter {
     private static void printChessBoard(Logic logic) {
@@ -25,14 +24,6 @@ public class ConsoleTest implements GameStarter {
 
     @Override
     public void startGame(String[] args) {
-        for (var arg : args) {
-            if (arg.startsWith("--")) {
-                if (arg.equals("--version")) {
-                    System.out.println(Config.ABOUT_STRING);
-                    break;
-                }
-            }
-        }
         {
             var logic = new Logic();
             System.out.println(logic.getChessCount(ChessType.EMPTY));

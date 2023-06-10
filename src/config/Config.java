@@ -7,6 +7,7 @@ public class Config {
     public static final String ABOUT_STRING = PRODUCT_NAME + " v" + VERSION
             + "\nCopyright (C) 2023 " + AUTHOR
             + "\nAll rights reserved.";
+    public static final String VERSION_STRING = ABOUT_STRING;
     public static final String HELP_STRING = ""
             + "Operation:\n"
             + "    \"WASD\" or arrow keys to move cursor\n"
