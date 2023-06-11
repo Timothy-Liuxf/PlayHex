@@ -356,13 +356,13 @@ public class GuiGame extends JFrame {
         });
         fileMenu.add(exit);
         var helpMenu = new JMenu("Help");
-        var localHelp = new JMenuItem("Local help");
+        var localHelp = new JMenuItem("Local Help");
         localHelp.addActionListener(e -> {
-            JOptionPane.showMessageDialog(GuiGame.this, Config.HELP_STRING, "Local help",
+            JOptionPane.showMessageDialog(GuiGame.this, Config.HELP_STRING, "Local Help",
                     JOptionPane.INFORMATION_MESSAGE);
         });
         helpMenu.add(localHelp);
-        var onlineHelp = new JMenuItem("Online help");
+        var onlineHelp = new JMenuItem("Online Help");
         onlineHelp.addActionListener(e -> {
             final String onlineHelpUrl = "https://Timothy-Liuxf.github.io/PlayHex";
             int result = JOptionPane.showConfirmDialog(GuiGame.this,
@@ -449,7 +449,7 @@ public class GuiGame extends JFrame {
             if (this.gameState == GameState.ANIMATING) {
                 if (logic.isFinished()) {
                     this.gameState = GameState.GAME_OVER;
-                    JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game over",
+                    JOptionPane.showMessageDialog(GuiGame.this, "WINNER: " + logic.getWinner(), "Game Over",
                             JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     this.gameState = GameState.CHOOSING_CHESS;
