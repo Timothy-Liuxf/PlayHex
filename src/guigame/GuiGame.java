@@ -275,9 +275,9 @@ public class GuiGame extends JFrame {
                 case KeyEvent.VK_NUMPAD0:
                     if (gameState == GameState.CHOOSING_DESTINATION) {
                         gameStateManager.cancelChoose();
+                        cursorPos.row = chosenPos.row;
+                        cursorPos.col = chosenPos.col;
                     }
-                    cursorPos.row = chosenPos.row;
-                    cursorPos.col = chosenPos.col;
                     break;
                 case KeyEvent.VK_ENTER:
                 case KeyEvent.VK_SPACE:
