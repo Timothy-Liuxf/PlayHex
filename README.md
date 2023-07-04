@@ -11,7 +11,7 @@
 
 ## Description
 
-PlayHex, a board game, as the homework of the course 'JAVA and Object-Oriented Programming' in Tsinghua University.
+PlayHex, a board game, as the homework of the course 'JAVA and Object-Oriented Programming' in Tsinghua University in 2023.
 
 ## Platform
 
