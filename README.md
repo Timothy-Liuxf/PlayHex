@@ -35,6 +35,6 @@ When a player makes a move and there are opponent's chess pieces in the adjacent
 
 + "WASD" or arrow keys to move cursor
 + "Enter" or "Space" to select
-+ "Q" or "Esc" to cancel selection
++ "Q", "Esc" or "Numpad 0" to cancel selection
 
 **Thank you for playing!**

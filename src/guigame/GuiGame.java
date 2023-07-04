@@ -272,6 +272,7 @@ public class GuiGame extends JFrame {
                     break;
                 case KeyEvent.VK_Q:
                 case KeyEvent.VK_ESCAPE:
+                case KeyEvent.VK_NUMPAD0:
                     if (gameState == GameState.CHOOSING_DESTINATION) {
                         gameStateManager.cancelChoose();
                     }
